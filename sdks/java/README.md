@@ -13,20 +13,10 @@ The `golem-sdk` package provides utilities for building durable, distributed app
 
 ## Installation
 
-### Gradle (Kotlin DSL)
+### sbt
 
-```kotlin
-dependencies {
-    implementation("cloud.golem:golem-sdk:0.0.0")
-}
-```
-
-### Gradle (Groovy)
-
-```groovy
-dependencies {
-    implementation 'cloud.golem:golem-sdk:0.0.0'
-}
+```scala
+libraryDependencies += "cloud.golem" % "golem-sdk" % "0.0.0"
 ```
 
 ### Maven
@@ -37,6 +27,14 @@ dependencies {
     <artifactId>golem-sdk</artifactId>
     <version>0.0.0</version>
 </dependency>
+```
+
+### Gradle
+
+```kotlin
+dependencies {
+    implementation("cloud.golem:golem-sdk:0.0.0")
+}
 ```
 
 ## Quick Start
@@ -147,13 +145,13 @@ for {
 ## Building
 
 ```bash
-./gradlew build
+sbt compile
 ```
 
 ## Testing
 
 ```bash
-./gradlew test
+sbt test
 ```
 
 ## Documentation
