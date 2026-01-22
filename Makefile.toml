@@ -117,17 +117,17 @@ script = """
 rm -r sdks/rust/golem-rust/wit/deps
 rm -r sdks/ts/wit/deps
 rm -r sdks/python/wit/deps
-rm -r sdks/jvm/wit/deps
+rm -r sdks/jvm/golem-java/wit/deps
 mkdir sdks/rust/golem-rust/wit/deps
 mkdir sdks/ts/wit/deps
 mkdir sdks/python/wit/deps
-mkdir sdks/jvm/wit/deps
+mkdir sdks/jvm/golem-java/wit/deps
 glob_cp wit/deps/**/* sdks/rust/golem-rust/wit/deps
 glob_cp sdks/rust/golem-rust/wit/golem-ai/**/* sdks/rust/golem-rust/wit/deps
 glob_cp wit/deps/**/* sdks/ts/wit/deps
 glob_cp sdks/ts/wit/golem-ai/**/* sdks/ts/wit/deps
 glob_cp wit/deps/**/* sdks/python/wit/deps
-glob_cp wit/deps/**/* sdks/jvm/wit/deps
+glob_cp wit/deps/**/* sdks/jvm/golem-java/wit/deps
 """
 
 [tasks.wit-golem-cli]
