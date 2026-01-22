@@ -1,0 +1,36 @@
+#!/bin/sh
+
+#
+# Copyright 2024-2025 Golem Cloud
+#
+# Licensed under the Apache License, Version 2.0
+
+# Gradle wrapper script
+
+# Determine the Java command to use
+if [ -n "$JAVA_HOME" ] ; then
+    JAVA_CMD="$JAVA_HOME/bin/java"
+else
+    JAVA_CMD="java"
+fi
+
+# Download Gradle if needed
+GRADLE_VERSION="8.5"
+GRADLE_HOME="${HOME}/.gradle/wrapper/dists/gradle-${GRADLE_VERSION}-bin"
+
+if [ ! -d "$GRADLE_HOME" ]; then
+    echo "Downloading Gradle $GRADLE_VERSION..."
+    mkdir -p "$GRADLE_HOME"
+    curl -fsSL "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" -o /tmp/gradle.zip
+    unzip -q /tmp/gradle.zip -d "$GRADLE_HOME"
+    rm /tmp/gradle.zip
+fi
+
+GRADLE_BIN=$(find "$GRADLE_HOME" -name "gradle" -type f -path "*/bin/*" | head -1)
+
+if [ -z "$GRADLE_BIN" ]; then
+    echo "Error: Could not find Gradle binary"
+    exit 1
+fi
+
+exec "$GRADLE_BIN" "$@"
