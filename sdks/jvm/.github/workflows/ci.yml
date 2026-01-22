@@ -24,22 +24,23 @@ jobs:
           java-version: ${{ matrix.java-version }}
           distribution: "temurin"
 
-      - name: Cache Maven packages
+      - name: Setup Mill
+        uses: jodersky/setup-mill@v0.2.3
+
+      - name: Cache Mill
         uses: actions/cache@v4
         with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+          path: |
+            ~/.mill
+            ~/.cache/coursier
+          key: ${{ runner.os }}-mill-${{ hashFiles('build.sc') }}
 
-      - name: Build with Maven
-        working-directory: golem-java
-        run: mvn -B compile
+      - name: Compile
+        run: mill golem-java.compile
 
       - name: Run tests
-        working-directory: golem-java
-        run: mvn -B test
+        run: mill golem-java.test
 
-  # WASM build requires additional setup
   build-wasm:
     runs-on: ubuntu-latest
     steps:
@@ -51,23 +52,17 @@ jobs:
           java-version: "17"
           distribution: "temurin"
 
+      - name: Setup Mill
+        uses: jodersky/setup-mill@v0.2.3
+
       - name: Install wasm-tools
         run: |
           curl -LO https://github.com/bytecodealliance/wasm-tools/releases/download/v1.0.54/wasm-tools-1.0.54-x86_64-linux.tar.gz
           tar xzf wasm-tools-1.0.54-x86_64-linux.tar.gz
           sudo mv wasm-tools-1.0.54-x86_64-linux/wasm-tools /usr/local/bin/
 
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
-      - name: Build WASM
-        working-directory: golem-java
-        run: mvn -B compile
-        # Note: Full WASM component build requires adapters and wit-bindgen setup
+      - name: Compile
+        run: mill golem-java.compile
 
   publish:
     needs: [build]
@@ -82,25 +77,23 @@ jobs:
         with:
           java-version: "17"
           distribution: "temurin"
-          server-id: ossrh
-          server-username: MAVEN_USERNAME
-          server-password: MAVEN_PASSWORD
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: GPG_PASSPHRASE
+
+      - name: Setup Mill
+        uses: jodersky/setup-mill@v0.2.3
 
       - name: Get version from tag
         id: get_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
-      - name: Update version in pom.xml
-        working-directory: golem-java
-        run: |
-          mvn versions:set -DnewVersion=${{ steps.get_version.outputs.VERSION }}
-
       - name: Publish to Maven Central
-        working-directory: golem-java
         env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-        run: mvn -B deploy -P release
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+        run: |
+          mill mill.scalalib.PublishModule/publishAll \
+            golem-java.publishArtifacts \
+            --sonatypeUri https://s01.oss.sonatype.org/service/local \
+            --sonatypeSnapshotUri https://s01.oss.sonatype.org/content/repositories/snapshots \
+            --publishVersion ${{ steps.get_version.outputs.VERSION }}

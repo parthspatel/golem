@@ -16,7 +16,7 @@ This SDK enables Java developers to build durable, distributed applications that
 ## Prerequisites
 
 - Java 17+
-- Maven 3.8+
+- [Mill](https://mill-build.com/) build tool
 - [wasm-tools](https://github.com/bytecodealliance/wasm-tools) (for componentization)
 - [wit-bindgen](https://github.com/bytecodealliance/wit-bindgen) (commit 86e8ae2b for TeaVM-Java support)
 
@@ -33,22 +33,24 @@ cargo install --git https://github.com/bytecodealliance/wit-bindgen \
 ## Project Structure
 
 ```
-golem-java/
-├── pom.xml                    # Maven build with TeaVM plugin
-├── scripts/
-│   └── generate-bindings.sh   # WIT binding generation script
-├── src/main/java/cloud/golem/
-│   ├── api/                   # Generated WIT bindings (after running script)
-│   ├── host/                  # High-level host API wrappers
-│   │   ├── GolemHost.java     # Main entry point for host functions
-│   │   ├── Transaction.java   # Transaction API
-│   │   ├── Promise.java       # Promise handling
-│   │   └── ...
-│   └── types/                 # Core types
-│       ├── PromiseId.java
-│       ├── WorkerId.java
-│       ├── OplogIndex.java
-│       └── ...
+sdks/jvm/
+├── build.sc                   # Mill build file
+├── .mill-version              # Mill version
+├── golem-java/
+│   ├── scripts/
+│   │   └── generate-bindings.sh   # WIT binding generation script
+│   └── src/main/java/cloud/golem/
+│       ├── api/               # Generated WIT bindings (after running script)
+│       ├── host/              # High-level host API wrappers
+│       │   ├── GolemHost.java     # Main entry point for host functions
+│       │   ├── Transaction.java   # Transaction API
+│       │   ├── Promise.java       # Promise handling
+│       │   └── ...
+│       └── types/             # Core types
+│           ├── PromiseId.java
+│           ├── WorkerId.java
+│           ├── OplogIndex.java
+│           └── ...
 └── wit/                       # WIT interface definitions
 ```
 
@@ -102,14 +104,17 @@ public class MyComponent {
 ### 3. Build WASM Component
 
 ```bash
-# Compile to WASM
-mvn clean compile
+# Compile
+mill golem-java.compile
+
+# Compile to WASM (requires TeaVM)
+mill golem-java.compileWasm
 
 # Create component (requires wasm-tools)
-mvn package -Pwasm
+mill golem-java.componentize
 ```
 
-The output will be in `target/golem-java.wasm`.
+The output will be in `out/golem-java/componentize.dest/component.wasm`.
 
 ### 4. Deploy to Golem
 
@@ -198,22 +203,27 @@ Transaction.atomically(() -> {
 
 ### Compile Only
 ```bash
-mvn compile
+mill golem-java.compile
 ```
 
 ### Run Tests
 ```bash
-mvn test
+mill golem-java.test
 ```
 
 ### Build WASM
 ```bash
-mvn package -Pwasm
+mill golem-java.compileWasm
+```
+
+### Create Component
+```bash
+mill golem-java.componentize
 ```
 
 ### Full Clean Build
 ```bash
-mvn clean package -Pwasm
+mill clean && mill golem-java.componentize
 ```
 
 ## Limitations
